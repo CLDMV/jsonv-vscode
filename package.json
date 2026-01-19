@@ -1,0 +1,53 @@
+{
+	"name": "jsonv-vscode",
+	"displayName": "JSONV Language Support",
+	"description": "VS Code language support for .jsonv files (JSON5 + ES2015-2025 features)",
+	"version": "0.1.0",
+	"publisher": "cldmv",
+	"license": "Apache-2.0",
+	"scripts": {
+		"build": "vsce package --allow-missing-repository",
+		"clean": "rimraf --glob ./*.vsix",
+		"install": "npm run build && node -e \"require('child_process').execSync('code --install-extension ' + require('glob').sync('*.vsix')[0], {stdio: 'inherit'})\""
+	},
+	"devDependencies": {
+		"vsce": "^2.15.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/CLDMV/jsonv-vscode.git",
+		"directory": "plugins/jsonv-vscode"
+	},
+	"engines": {
+		"vscode": "^1.88.0"
+	},
+	"categories": [
+		"Programming Languages"
+	],
+	"contributes": {
+		"languages": [
+			{
+				"id": "jsonv",
+				"aliases": [
+					"JSONV",
+					"jsonv"
+				],
+				"extensions": [
+					".jsonv"
+				],
+				"configuration": "./language-configuration.json",
+				"icon": {
+					"light": "./icons/jsonv-light.svg",
+					"dark": "./icons/jsonv-dark.svg"
+				}
+			}
+		],
+		"grammars": [
+			{
+				"language": "jsonv",
+				"scopeName": "source.jsonv",
+				"path": "./syntaxes/jsonv.tmLanguage.json"
+			}
+		]
+	}
+}

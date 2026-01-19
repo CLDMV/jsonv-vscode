@@ -1,0 +1,153 @@
+{
+	"name": "JSONV",
+	"scopeName": "source.jsonv",
+	"patterns": [{ "include": "#value" }],
+	"repository": {
+		"comments": {
+			"patterns": [
+				{
+					"begin": "/\\*\\*",
+					"captures": { "0": { "name": "punctuation.definition.comment.jsonv" } },
+					"end": "\\*/",
+					"name": "comment.block.documentation.jsonv"
+				},
+				{
+					"begin": "/\\*",
+					"captures": { "0": { "name": "punctuation.definition.comment.jsonv" } },
+					"end": "\\*/",
+					"name": "comment.block.jsonv"
+				},
+				{
+					"captures": { "1": { "name": "punctuation.definition.comment.jsonv" } },
+					"match": "(//).*$\\n?",
+					"name": "comment.line.double-slash.jsonv"
+				}
+			]
+		},
+		"constant": {
+			"match": "\\b(?:true|false|null|Infinity|NaN)\\b",
+			"name": "constant.language.jsonv"
+		},
+		"number": {
+			"match": "(?x)(?:[+-]?(?:0[bB][01_]+|0[oO][0-7_]+|0[xX][0-9A-Fa-f_]+|\\d[\\d_]*)(?:\\.\\d[\\d_]*)?(?:[eE][+-]?\\d[\\d_]*)?n?)",
+			"name": "constant.numeric.jsonv"
+		},
+		"stringcontent": {
+			"patterns": [
+				{
+					"match": "(?x)\\\\(?:[\\\\/bfnrt\"'`]|u[0-9a-fA-F]{4})",
+					"name": "constant.character.escape.jsonv"
+				},
+				{
+					"match": "\\\\.",
+					"name": "invalid.illegal.unrecognized-string-escape.jsonv"
+				}
+			]
+		},
+		"string": {
+			"patterns": [
+				{
+					"begin": "\"",
+					"beginCaptures": { "0": { "name": "punctuation.definition.string.begin.jsonv" } },
+					"end": "\"",
+					"endCaptures": { "0": { "name": "punctuation.definition.string.end.jsonv" } },
+					"name": "string.quoted.double.jsonv",
+					"patterns": [{ "include": "#stringcontent" }]
+				},
+				{
+					"begin": "'",
+					"beginCaptures": { "0": { "name": "punctuation.definition.string.begin.jsonv" } },
+					"end": "'",
+					"endCaptures": { "0": { "name": "punctuation.definition.string.end.jsonv" } },
+					"name": "string.quoted.single.jsonv",
+					"patterns": [{ "include": "#stringcontent" }]
+				},
+				{
+					"begin": "`",
+					"beginCaptures": { "0": { "name": "punctuation.definition.string.begin.jsonv" } },
+					"end": "`",
+					"endCaptures": { "0": { "name": "punctuation.definition.string.end.jsonv" } },
+					"name": "string.quoted.template.jsonv",
+					"patterns": [
+						{ "include": "#stringcontent" },
+						{
+							"begin": "\\$\\{",
+							"end": "\\}",
+							"name": "meta.template.expression.jsonv",
+							"patterns": [{ "include": "#value" }]
+						}
+					]
+				}
+			]
+		},
+		"objectkey": {
+			"patterns": [
+				{
+					"begin": "\"",
+					"beginCaptures": { "0": { "name": "punctuation.support.type.property-name.begin.jsonv" } },
+					"end": "\"",
+					"endCaptures": { "0": { "name": "punctuation.support.type.property-name.end.jsonv" } },
+					"name": "string.quoted.double.jsonv.support.type.property-name.jsonv",
+					"patterns": [{ "include": "#stringcontent" }]
+				},
+				{
+					"begin": "'",
+					"beginCaptures": { "0": { "name": "punctuation.support.type.property-name.begin.jsonv" } },
+					"end": "'",
+					"endCaptures": { "0": { "name": "punctuation.support.type.property-name.end.jsonv" } },
+					"name": "string.quoted.single.jsonv.support.type.property-name.jsonv",
+					"patterns": [{ "include": "#stringcontent" }]
+				},
+				{
+					"match": "\\b[$A-Za-z_][\\w$]*\\b(?=\\s*:)",
+					"name": "support.type.property-name.jsonv"
+				}
+			]
+		},
+		"array": {
+			"begin": "\\[",
+			"beginCaptures": { "0": { "name": "punctuation.definition.array.begin.jsonv" } },
+			"end": "\\]",
+			"endCaptures": { "0": { "name": "punctuation.definition.array.end.jsonv" } },
+			"name": "meta.structure.array.jsonv",
+			"patterns": [
+				{ "include": "#value" },
+				{ "match": ",", "name": "punctuation.separator.array.jsonv" },
+				{ "match": "[^\\s\\]]", "name": "invalid.illegal.expected-array-separator.jsonv" }
+			]
+		},
+		"object": {
+			"begin": "\\{",
+			"beginCaptures": { "0": { "name": "punctuation.definition.dictionary.begin.jsonv" } },
+			"end": "\\}",
+			"endCaptures": { "0": { "name": "punctuation.definition.dictionary.end.jsonv" } },
+			"name": "meta.structure.dictionary.jsonv",
+			"patterns": [
+				{ "comment": "the JSON object key", "include": "#objectkey" },
+				{ "include": "#comments" },
+				{
+					"begin": ":",
+					"beginCaptures": { "0": { "name": "punctuation.separator.dictionary.key-value.jsonv" } },
+					"end": "(,)|(?=\\})",
+					"endCaptures": { "1": { "name": "punctuation.separator.dictionary.pair.jsonv" } },
+					"name": "meta.structure.dictionary.value.jsonv",
+					"patterns": [
+						{ "comment": "the JSON object value", "include": "#value" },
+						{ "match": "[^\\s,]", "name": "invalid.illegal.expected-dictionary-separator.jsonv" }
+					]
+				},
+				{ "match": "[^\\s\\}]", "name": "invalid.illegal.expected-dictionary-separator.jsonv" }
+			]
+		},
+		"value": {
+			"patterns": [
+				{ "include": "#string" },
+				{ "include": "#constant" },
+				{ "include": "#number" },
+				{ "include": "#array" },
+				{ "include": "#object" },
+				{ "include": "#comments" }
+			]
+		}
+	}
+}
