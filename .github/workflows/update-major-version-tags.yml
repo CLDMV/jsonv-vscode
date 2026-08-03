@@ -1,14 +1,18 @@
+#
+# @Project: @cldmv/.github
+# @Filename: /examples/individual-repo-workflows/core-cicd/update-major-version-tags.yml
+# @Date: 2026-05-20 00:00:00 -07:00 (1779606000)
+# @Author: Nate Corcoran <CLDMV>
+# @Email: <Shinrai@users.noreply.github.com>
+# @Copyright: Copyright (c) 2013-2026 Catalyzed Motivation Inc. All rights reserved.
+#
+
 # Individual repo: .github/workflows/update-major-version-tags.yml
 name: 🏷️ Update Major Version Tags
 
 on:
   release:
     types: [published]
-  push:
-    branches:
-      - main
-      - master
-
   workflow_dispatch:
     inputs:
       debug:
@@ -54,7 +58,13 @@ on:
 
 jobs:
   update-tags:
-    uses: CLDMV/.github/.github/workflows/workflow-update-major-version-tags.yml@v1
+    # Skip release events fired without a tag_name (e.g. "untagged-<sha>" runs
+    # the bot or a prior code path can produce). The reusable workflow has its
+    # own tag-readiness polling for forward-facing prevention; this guard
+    # protects against legacy / external sources of untagged release events.
+    # Batch 1.2 from tmp/plan-future-workflows.md.
+    if: github.event_name != 'release' || github.event.release.tag_name != ''
+    uses: CLDMV/.github/.github/workflows/workflow-update-major-version-tags.yml@v4
     permissions:
       contents: write
     with:
@@ -73,5 +83,5 @@ jobs:
       TAGGER_EMAIL: ${{ secrets.CLDMV_BOT_EMAIL }}
       GPG_PRIVATE_KEY: ${{ secrets.CLDMV_BOT_GPG_PRIVATE_KEY }}
       GPG_PASSPHRASE: ${{ secrets.CLDMV_BOT_GPG_PASSPHRASE }}
-      BOT_APP_ID: ${{ secrets.CLDMV_BOT_APP_ID }}
+      BOT_APP_CLIENT_ID: ${{ secrets.CLDMV_BOT_APP_CLIENT_ID }}
       BOT_APP_PRIVATE_KEY: ${{ secrets.CLDMV_BOT_APP_PRIVATE_KEY }}
