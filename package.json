@@ -2,13 +2,13 @@
 	"name": "jsonv-vscode",
 	"displayName": "JSONV Language Support",
 	"description": "VS Code language support for .jsonv files (JSON5 + ES2015-2025 features)",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"publisher": "cldmv",
 	"license": "Apache-2.0",
 	"scripts": {
 		"build": "vsce package --allow-missing-repository",
 		"clean": "rimraf --glob ./*.vsix",
-		"install": "npm run build && node -e \"require('child_process').execSync('code --install-extension ' + require('glob').sync('*.vsix')[0], {stdio: 'inherit'})\""
+		"install:local": "npm run build && node -e \"require('child_process').execSync('code --install-extension ' + require('glob').sync('*.vsix')[0], {stdio: 'inherit'})\""
 	},
 	"devDependencies": {
 		"vsce": "^2.15.0"
