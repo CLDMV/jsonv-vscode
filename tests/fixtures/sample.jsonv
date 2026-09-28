@@ -1,0 +1,25 @@
+// a line comment
+/** a documentation block comment */
+/* a plain block comment */
+{
+	"doubleKey": "double-quoted value with \"escaped\" quotes and \u0041 unicode",
+	'singleKey': 'single-quoted value',
+	unquotedKey: `template literal with an ${99} interpolated expression`,
+	"decimal": 42,
+	"negativeDecimal": -17,
+	"float": 3.14,
+	"exponent": 6.02e23,
+	"hex": 0xFF,
+	"octal": 0o17,
+	"binary": 0b1010,
+	"bigint": 10n,
+	"underscoredDigits": 1_000_000,
+	"boolTrue": true,
+	"boolFalse": false,
+	"nothing": null,
+	"positiveInfinity": Infinity,
+	"notANumber": NaN,
+	"nested": {
+		"array": [1, 2, 3]
+	}
+}

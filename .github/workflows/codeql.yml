@@ -1,6 +1,6 @@
 #
-# @Project: @cldmv/.github
-# @Filename: /examples/individual-repo-workflows/security/codeql.yml
+# @Project: @cldmv/jsonv-vscode
+# @Filename: /.github/workflows/codeql.yml
 # @Date: 2026-05-20 00:00:00 -07:00 (1779606000)
 # @Author: Nate Corcoran <CLDMV>
 # @Email: <Shinrai@users.noreply.github.com>
@@ -18,6 +18,12 @@
 # workflow to "fix" CodeQL failures: that re-opens the permanent "Waiting for
 # Code Scanning results" block. Unset the variable if the repo ever gains real
 # analyzable source.
+#
+# (General note: PRIVATE repos are also skipped by DEFAULT via the same
+# variable — the bootstrap's `variables` phase sets it on every private repo
+# not opted into `data/code-scanning-skips.json`'s `scan` list in
+# CLDMV/.github, since Code Security bills per active committer there. Not
+# the reason this repo skips, but worth knowing if visibility ever changes.)
 #
 # REQUIRED REPO SETTING — CodeQL must be in "Advanced" mode for this workflow
 # to upload SARIF. If the repo has CodeQL "Default setup" enabled (the
@@ -60,9 +66,7 @@ on:
         - cron: "37 14 * * 1" # weekly Monday 14:37 UTC; GitHub updates queries over time
 
 permissions:
-    security-events: write
     contents: read
-    actions: read
 
 concurrency:
     group: codeql-${{ github.workflow }}-${{ github.ref }}
@@ -70,6 +74,10 @@ concurrency:
 
 jobs:
     analyze:
+        permissions:
+            security-events: write
+            contents: read
+            actions: read
         uses: CLDMV/.github/.github/workflows/reusable-codeql.yml@v4
         with:
             languages: "javascript-typescript"

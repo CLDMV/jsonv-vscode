@@ -1,0 +1,9 @@
+.configs/**
+.github/**
+docs/**
+tests/**
+.gitignore
+.vscodeignore
+package-lock.json
+*.log
+*.vsix
