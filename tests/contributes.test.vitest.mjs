@@ -68,9 +68,9 @@ describe("package.json contributes.grammars", () => {
 describe("grammar repository shape", () => {
 	const grammarJson = JSON.parse(fs.readFileSync(GRAMMAR_PATH, "utf8"));
 
-	it("roots patterns at #value and exposes the expected named rules", () => {
-		expect(grammarJson.patterns).toEqual([{ include: "#value" }]);
-		const expectedRules = ["comments", "constant", "number", "stringcontent", "string", "objectkey", "array", "object", "value"];
+	it("roots patterns at #value (then #unrecognizedvalue) and exposes the expected named rules", () => {
+		expect(grammarJson.patterns).toEqual([{ include: "#value" }, { include: "#unrecognizedvalue" }]);
+		const expectedRules = ["comments", "constant", "number", "stringcontent", "string", "objectkey", "quotedobjectkey", "array", "object", "value", "unrecognizedvalue"];
 		for (const rule of expectedRules) {
 			expect(grammarJson.repository).toHaveProperty(rule);
 		}

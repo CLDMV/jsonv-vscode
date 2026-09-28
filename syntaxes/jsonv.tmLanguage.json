@@ -1,8 +1,13 @@
 {
 	"name": "JSONV",
 	"scopeName": "source.jsonv",
-	"patterns": [{ "include": "#value" }],
+	"patterns": [{ "include": "#value" }, { "include": "#unrecognizedvalue" }],
 	"repository": {
+		"unrecognizedvalue": {
+			"comment": "Text no #value pattern recognizes where a value is expected at the top level of a file or inside a ${...} interpolation (+Infinity, +x, a lone -). Listed after #value, so it only claims text no #value pattern matches at the same or an earlier position. A / is claimed only when it does not open a comment, and a } inside an interpolation ties with that region's end, which wins.",
+			"match": "[^\\s,\\[\\]{}:\"'`/]+|/(?![/*])|[^\\s/]",
+			"name": "invalid.illegal.unrecognized-value.jsonv"
+		},
 		"comments": {
 			"patterns": [
 				{
@@ -112,7 +117,7 @@
 							"begin": "\\$\\{",
 							"end": "\\}",
 							"name": "meta.template.expression.jsonv",
-							"patterns": [{ "include": "#value" }]
+							"patterns": [{ "include": "#value" }, { "include": "#unrecognizedvalue" }]
 						}
 					]
 				}
@@ -145,6 +150,56 @@
 					"comment": "numeric key: any number literal jsonv accepts (decimal, signed, leading/trailing-dot, exponent, hex, binary, octal, bigint), or -Infinity / -NaN",
 					"match": "(?x)(?<![$0-9A-Za-z_.])(?:-(?:Infinity|NaN)|[+-]?(?:0[xX][0-9A-Fa-f](?:_?[0-9A-Fa-f])*n?|0[bB][01](?:_?[01])*n?|0[oO][0-7](?:_?[0-7])*n?|[0-9](?:_?[0-9])*n|(?:[0-9](?:_?[0-9])*(?:\\.(?:_?[0-9](?:_?[0-9])*)?)?|\\.[0-9](?:_?[0-9])*)(?:[eE][+-]?[0-9](?:_?[0-9])*)?))(?=\\s*(?:/\\*(?:[^*]|\\*(?!/))*\\*/\\s*)*:)",
 					"name": "support.type.property-name.numeric.jsonv"
+				}
+			]
+		},
+		"quotedobjectkey": {
+			"comment": "A quoted key. When the closing quote is on the same line and is followed (after whitespace and block comments) by something other than a \":\", a comment or the end of the line, the whole key is flagged ({ \"port\" }, { 'a' 'b': 1 }). Otherwise the key opens a region that, like #pendingobjectkey, lasts until the \":\" (on this line or a later one) and flags a \",\" or \"}\" that arrives first, and anything else before the \":\".",
+			"patterns": [
+				{
+					"begin": "\"(?=(?:[^\"\\\\]|\\\\.)*\"\\s*+(?:/\\*(?:[^*]|\\*(?!/))*\\*/\\s*+)*+(?![:/]|$))",
+					"beginCaptures": { "0": { "name": "punctuation.support.type.property-name.begin.jsonv" } },
+					"end": "\"",
+					"endCaptures": { "0": { "name": "punctuation.support.type.property-name.end.jsonv" } },
+					"name": "string.quoted.double.jsonv.support.type.property-name.jsonv invalid.illegal.expected-key-value-separator.jsonv",
+					"patterns": [{ "include": "#stringcontent" }]
+				},
+				{
+					"begin": "'(?=(?:[^'\\\\]|\\\\.)*'\\s*+(?:/\\*(?:[^*]|\\*(?!/))*\\*/\\s*+)*+(?![:/]|$))",
+					"beginCaptures": { "0": { "name": "punctuation.support.type.property-name.begin.jsonv" } },
+					"end": "'",
+					"endCaptures": { "0": { "name": "punctuation.support.type.property-name.end.jsonv" } },
+					"name": "string.quoted.single.jsonv.support.type.property-name.jsonv invalid.illegal.expected-key-value-separator.jsonv",
+					"patterns": [{ "include": "#stringcontent" }]
+				},
+				{
+					"begin": "(?=[\"'])",
+					"end": "(?=:)|(,)|(\\})",
+					"endCaptures": {
+						"1": { "name": "invalid.illegal.expected-key-value-separator.jsonv" },
+						"2": { "name": "punctuation.definition.dictionary.end.jsonv invalid.illegal.expected-key-value-separator.jsonv" }
+					},
+					"patterns": [
+						{
+							"comment": "the key itself, matched exactly once (\\G holds only at this region's start)",
+							"begin": "\\G\"",
+							"beginCaptures": { "0": { "name": "punctuation.support.type.property-name.begin.jsonv" } },
+							"end": "\"",
+							"endCaptures": { "0": { "name": "punctuation.support.type.property-name.end.jsonv" } },
+							"name": "string.quoted.double.jsonv.support.type.property-name.jsonv",
+							"patterns": [{ "include": "#stringcontent" }]
+						},
+						{
+							"begin": "\\G'",
+							"beginCaptures": { "0": { "name": "punctuation.support.type.property-name.begin.jsonv" } },
+							"end": "'",
+							"endCaptures": { "0": { "name": "punctuation.support.type.property-name.end.jsonv" } },
+							"name": "string.quoted.single.jsonv.support.type.property-name.jsonv",
+							"patterns": [{ "include": "#stringcontent" }]
+						},
+						{ "include": "#comments" },
+						{ "match": "[^\\s:,}/]+|/", "name": "invalid.illegal.expected-key-value-separator.jsonv" }
+					]
 				}
 			]
 		},
@@ -184,10 +239,9 @@
 			"patterns": [
 				{ "include": "#comments" },
 				{
-					"comment": "the element itself, matched exactly once",
+					"comment": "the element itself, matched exactly once. \\G holds only at this region's start (vscode-textmate clears every anchor at a line break), so (?!\\G) ends the region right after the first value it consumes; a second value with no whitespace before it (x/y, tag`t`) is then left for the expected-array-separator rule below instead of joining this one.",
 					"begin": "\\G(?=[^\\s,\\]])",
-					"end": "(?=[\\s\\S]|$)",
-					"applyEndPatternLast": 1,
+					"end": "(?!\\G)",
 					"patterns": [
 						{ "include": "#value" },
 						{
@@ -214,6 +268,7 @@
 			"endCaptures": { "0": { "name": "punctuation.definition.dictionary.end.jsonv" } },
 			"name": "meta.structure.dictionary.jsonv",
 			"patterns": [
+				{ "include": "#quotedobjectkey" },
 				{ "comment": "the JSON object key", "include": "#objectkey" },
 				{ "include": "#pendingobjectkey" },
 				{ "include": "#comments" },
@@ -235,10 +290,9 @@
 			"patterns": [
 				{ "include": "#comments" },
 				{
-					"comment": "the object value itself, matched exactly once",
+					"comment": "the object value itself, matched exactly once; see the same rule in #arrayelement",
 					"begin": "\\G(?=[^\\s,\\}])",
-					"end": "(?=[\\s\\S]|$)",
-					"applyEndPatternLast": 1,
+					"end": "(?!\\G)",
 					"patterns": [
 						{ "include": "#value" },
 						{
