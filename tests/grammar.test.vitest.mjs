@@ -76,6 +76,23 @@ describe("strings", () => {
 		expect(hasScope(unicodeEscape, "constant.character.escape.jsonv")).toBe(true);
 	});
 
+	it("scopes an unknown escape (\\q) as constant.character.escape, since the jsonv parser reads it as the escaped character", () => {
+		for (const source of ['["an unknown \\q escape"]', "{'k\\q': 'a\\zb'}", "[`a\\qb`]"]) {
+			const tokens = tokenize(grammar, source);
+			expect(tokens.filter((t) => t.scopes.some((s) => s.startsWith("invalid.illegal"))).map((t) => t.text)).toEqual([]);
+			const escapes = tokens.filter((t) => /^\\[qz]$/.test(t.text));
+			expect(escapes.length).toBeGreaterThan(0);
+			for (const escape of escapes) expect(hasScope(escape, "constant.character.escape.jsonv")).toBe(true);
+		}
+	});
+
+	it("scopes a backslash before a line break (line continuation) as constant.character.escape", () => {
+		const tokens = tokenize(grammar, '["a\\\nb", 1]');
+		expect(tokens.filter((t) => t.scopes.some((s) => s.startsWith("invalid.illegal")))).toEqual([]);
+		expect(hasScope(tokenAt(tokens, "\\"), "constant.character.escape.jsonv")).toBe(true);
+		expect(hasScope(tokenAt(tokens, "1"), "constant.numeric.jsonv")).toBe(true);
+	});
+
 	it("scopes a single-quoted string value", () => {
 		const value = tokenAt(sampleTokens, "single-quoted value");
 		expect(hasScope(value, "string.quoted.single.jsonv")).toBe(true);
@@ -146,8 +163,10 @@ describe("structure", () => {
 });
 
 describe("malformed input", () => {
-	it("scopes an unrecognized string escape as invalid.illegal", () => {
-		const badEscape = tokenAt(malformedTokens, "\\q");
+	it("scopes a \\x escape without two hex digits as invalid.illegal", () => {
+		// The jsonv lexer rejects \x and \u escapes that lack their hex digits; every
+		// other escaped character is accepted (see the "strings" tests).
+		const badEscape = tokenAt(malformedTokens, "\\x");
 		expect(hasScope(badEscape, "invalid.illegal.unrecognized-string-escape.jsonv")).toBe(true);
 	});
 
@@ -352,5 +371,96 @@ describe("no false positives across line breaks (regression for the #arrayelemen
 		const tokens = tokenize(grammar, "[1\n  2\n]");
 		expect(hasScope(tokenAt(tokens, "1"), "invalid.illegal.expected-array-separator.jsonv")).toBe(false);
 		expect(hasScope(tokenAt(tokens, "2"), "invalid.illegal.expected-array-separator.jsonv")).toBe(true);
+	});
+});
+
+/**
+ * @param {string} source
+ * @returns {string[]} the text of every token carrying an invalid.illegal scope
+ */
+function invalidTexts(source) {
+	return tokenize(grammar, source)
+		.filter((t) => t.scopes.some((s) => s.startsWith("invalid.illegal")))
+		.map((t) => t.text);
+}
+
+describe("key whose colon is on a later line (issue #25)", () => {
+	it("does not flag an identifier or numeric key whose colon is on the next line", () => {
+		expect(invalidTexts("{a\n: 1}")).toEqual([]);
+		expect(invalidTexts("{a\n\n  : 1, b: 2}")).toEqual([]);
+		expect(invalidTexts("{5\n: 1, -Infinity\n  /* c */ : 2, b // c\n: 3}")).toEqual([]);
+		expect(invalidTexts("{a /* x\n y */ : 1}")).toEqual([]);
+		expect(invalidTexts("{ a: 1,\n  b\n  : 2 }")).toEqual([]);
+	});
+
+	it("scopes the key as a property name and the value normally", () => {
+		const tokens = tokenize(grammar, "{a\n: 1, 5\n: 2}");
+		expect(tokenAt(tokens, "a").scopes).toContain("support.type.property-name.jsonv");
+		expect(hasScope(tokenAt(tokens, "5"), "support.type.property-name.numeric.jsonv")).toBe(true);
+		expect(hasScope(tokenAt(tokens, "1"), "constant.numeric.jsonv")).toBe(true);
+		expect(hasScope(tokenAt(tokens, "2"), "constant.numeric.jsonv")).toBe(true);
+	});
+
+	it("still flags a shorthand property on one line", () => {
+		expect(invalidTexts("{ port }").join("")).toBe("port");
+		expect(invalidTexts("{\n  port: 8080,\n  config: { port }\n}").join("")).toBe("port");
+	});
+
+	it("flags the } or , that arrives before the colon of a key at the end of its line, and keeps scoping what follows", () => {
+		const closing = tokenize(grammar, "{\n  port\n}\n[1]");
+		const brace = tokenAt(closing, "}");
+		expect(hasScope(brace, "invalid.illegal.expected-key-value-separator.jsonv")).toBe(true);
+		expect(hasScope(brace, "punctuation.definition.dictionary.end.jsonv")).toBe(true);
+		// the object closed on that }, so the array on the next line is a new root value
+		const one = tokenAt(closing, "1");
+		expect(hasScope(one, "meta.structure.dictionary.jsonv")).toBe(false);
+		expect(hasScope(one, "constant.numeric.jsonv")).toBe(true);
+
+		expect(invalidTexts("{ port\n, a: 1 }")).toEqual([","]);
+		expect(invalidTexts("{a\n b: 1}")).toEqual(["b"]);
+
+		const nested = tokenize(grammar, "{x: {a\n}, y: 1}");
+		expect(nested.filter((t) => t.scopes.some((s) => s.startsWith("invalid.illegal"))).map((t) => t.text)).toEqual(["}"]);
+		expect(tokenAt(nested, "y").scopes).toContain("support.type.property-name.jsonv");
+		expect(hasScope(tokenAt(nested, "1"), "constant.numeric.jsonv")).toBe(true);
+	});
+});
+
+describe("values the parser rejects (issue #25)", () => {
+	it.each(["+Infinity", "+NaN", "_1", "-a", "()"])("flags %s as invalid.illegal.unrecognized-value in an array and an object", (text) => {
+		const inArray = tokenize(grammar, `[${text}, 2]`);
+		expect(hasScope(tokenAt(inArray, text), "invalid.illegal.unrecognized-value.jsonv")).toBe(true);
+		const inObject = tokenize(grammar, `{v: ${text}, w: 2}`);
+		expect(hasScope(tokenAt(inObject, text), "invalid.illegal.unrecognized-value.jsonv")).toBe(true);
+	});
+
+	it("flags both halves of a sign separated from its number (- 5)", () => {
+		expect(invalidTexts("[- 5, 2]")).toEqual(["-", "5"]);
+		expect(invalidTexts("{v: - 5, w: 2}")).toEqual(["-", "5"]);
+	});
+
+	it("keeps scoping the rest of the line after the invalid value", () => {
+		const tokens = tokenize(grammar, "[+Infinity, 2]");
+		const two = tokenAt(tokens, "2");
+		expect(hasScope(two, "constant.numeric.jsonv")).toBe(true);
+		expect(hasScope(two, "invalid.illegal")).toBe(false);
+		expect(hasScope(tokenAt(tokens, ","), "punctuation.separator.array.jsonv")).toBe(true);
+		expect(hasScope(tokenAt(tokens, "]"), "punctuation.definition.array.end.jsonv")).toBe(true);
+
+		const object = tokenize(grammar, "{a: _1, b: 'x'}");
+		expect(tokenAt(object, "b").scopes).toContain("support.type.property-name.jsonv");
+		expect(hasScope(tokenAt(object, "x"), "string.quoted.single.jsonv")).toBe(true);
+		expect(hasScope(tokenAt(object, "}"), "punctuation.definition.dictionary.end.jsonv")).toBe(true);
+	});
+
+	it("keeps scoping the following lines after the invalid value", () => {
+		const tokens = tokenize(grammar, "{\n\ta: [+Infinity, 2],\n\tb: true\n}\n[3]");
+		expect(invalidTexts("{\n\ta: [+Infinity, 2],\n\tb: true\n}\n[3]")).toEqual(["+Infinity"]);
+		expect(tokenAt(tokens, "b").scopes).toContain("support.type.property-name.jsonv");
+		expect(hasScope(tokenAt(tokens, "true"), "constant.language.jsonv")).toBe(true);
+		const three = tokenAt(tokens, "3");
+		expect(hasScope(three, "constant.numeric.jsonv")).toBe(true);
+		// the object closed normally, so [3] is a new root value, not nested inside it
+		expect(hasScope(three, "meta.structure.dictionary.jsonv")).toBe(false);
 	});
 });
