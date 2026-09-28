@@ -36,8 +36,8 @@ jobs:
         with:
             build_command: "npm run build"
             # Measures the .vsix content files (the extension is not an npm package; `npm run build` is `vsce package`).
-            # Leading `*` is required: the measure step only walks directories, so a bare top-level filename matches nothing.
-            dist_paths: "syntaxes/**,*language-configuration.json,icons/**"
+            # Every glob starts with `*`: the v4.29.2 measure action walks each path prefix separately (a bare top-level file matches nothing, and mixing `*` globs with directory globs counts files twice). CLDMV/.github#326/#327 fix this upstream.
+            dist_paths: "*syntaxes/**,*language-configuration.json,*icons/**"
             # warning_pct: 5
             # warning_bytes: 500
             # comment_mode: "update"
