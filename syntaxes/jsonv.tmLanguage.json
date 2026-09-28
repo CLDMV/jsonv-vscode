@@ -110,10 +110,35 @@
 			"end": "\\]",
 			"endCaptures": { "0": { "name": "punctuation.definition.array.end.jsonv" } },
 			"name": "meta.structure.array.jsonv",
+			"patterns": [{ "include": "#comments" }, { "include": "#arraytail" }]
+		},
+		"arraytail": {
+			"comment": "Spans from just after the array's own \"[\" (tolerating leading whitespace/comments) to its closing \"]\". Exactly one value is accepted per comma; anything else found where \",\" or \"]\" was expected is flagged expected-array-separator.",
+			"begin": "(?:\\s|//[^\\n]*\\n?|/\\*[^*]*\\*+(?:[^*/][^*]*\\*+)*/)*",
+			"end": "(?=\\])",
 			"patterns": [
-				{ "include": "#value" },
-				{ "match": ",", "name": "punctuation.separator.array.jsonv" },
-				{ "match": "[^\\s\\]]", "name": "invalid.illegal.expected-array-separator.jsonv" }
+				{ "include": "#comments" },
+				{
+					"comment": "the first element, or the element right after a real comma",
+					"begin": "\\G(?=[^\\s\\]])",
+					"end": "(?=[\\s\\S]|$)",
+					"applyEndPatternLast": 1,
+					"patterns": [{ "include": "#value" }]
+				},
+				{
+					"begin": ",",
+					"beginCaptures": { "0": { "name": "punctuation.separator.array.jsonv" } },
+					"end": "(?=[^\\s])",
+					"applyEndPatternLast": 1,
+					"patterns": [{ "include": "#comments" }, { "include": "#value" }]
+				},
+				{
+					"comment": "anything else found where \",\" or \"]\" was expected -- still recursed into #value so a nested array/object stays balanced and properly scoped underneath the invalid wrapper",
+					"begin": "(?=[^\\s,\\]])",
+					"end": "(?=[\\s,\\]])",
+					"name": "invalid.illegal.expected-array-separator.jsonv",
+					"patterns": [{ "include": "#value" }]
+				}
 			]
 		},
 		"object": {
@@ -126,14 +151,26 @@
 				{ "comment": "the JSON object key", "include": "#objectkey" },
 				{ "include": "#comments" },
 				{
-					"begin": ":",
-					"beginCaptures": { "0": { "name": "punctuation.separator.dictionary.key-value.jsonv" } },
+					"begin": "(:)(?:\\s|//[^\\n]*\\n?|/\\*[^*]*\\*+(?:[^*/][^*]*\\*+)*/)*",
+					"beginCaptures": { "1": { "name": "punctuation.separator.dictionary.key-value.jsonv" } },
 					"end": "(,)|(?=\\})",
 					"endCaptures": { "1": { "name": "punctuation.separator.dictionary.pair.jsonv" } },
 					"name": "meta.structure.dictionary.value.jsonv",
 					"patterns": [
-						{ "comment": "the JSON object value", "include": "#value" },
-						{ "match": "[^\\s,]", "name": "invalid.illegal.expected-dictionary-separator.jsonv" }
+						{
+							"comment": "the JSON object value",
+							"begin": "\\G(?=[^\\s,\\}])",
+							"end": "(?=[\\s\\S]|$)",
+							"applyEndPatternLast": 1,
+							"patterns": [{ "include": "#value" }]
+						},
+						{
+							"comment": "anything appearing where \",\" or \"}\" was expected -- e.g. an orphaned key:value pair caused by a missing comma. The key (if any) is still recognized via #objectkey.",
+							"begin": "(?=[^\\s,\\}])",
+							"end": "(?=[\\s,\\}])",
+							"name": "invalid.illegal.expected-dictionary-separator.jsonv",
+							"patterns": [{ "include": "#objectkey" }, { "include": "#value" }]
+						}
 					]
 				},
 				{ "match": "[^\\s\\}]", "name": "invalid.illegal.expected-dictionary-separator.jsonv" }
