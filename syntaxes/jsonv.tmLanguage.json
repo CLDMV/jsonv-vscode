@@ -71,8 +71,14 @@
 					"name": "constant.character.escape.jsonv"
 				},
 				{
-					"match": "\\\\.",
+					"comment": "\\x and \\u without the full count of hex digits are the only escapes the jsonv lexer rejects",
+					"match": "\\\\[ux]",
 					"name": "invalid.illegal.unrecognized-string-escape.jsonv"
+				},
+				{
+					"comment": "any other escaped character is accepted as that character (\\q is q), and a backslash before a line break is a line continuation",
+					"match": "\\\\(?:.|$)",
+					"name": "constant.character.escape.jsonv"
 				}
 			]
 		},
@@ -142,6 +148,23 @@
 				}
 			]
 		},
+		"pendingobjectkey": {
+			"comment": "An unquoted identifier or numeric key with nothing but whitespace and comments after it on its line, so #objectkey's colon lookahead cannot see whether a \":\" follows. The region spans lines until the \":\" (left for the object's value rule). A \",\" or \"}\" that arrives first is flagged: the \"}\" is consumed here and the object then closes on its (?<=\\}) end. Anything else before the \":\" is flagged too.",
+			"begin": "(?x)(?: ((?<![$0-9A-Za-z_])(?!_[0-9])[$A-Za-z_][$0-9A-Za-z_]*(?![$0-9A-Za-z_])) | ((?<![$0-9A-Za-z_.])(?:-(?:Infinity|NaN)|[+-]?(?:0[xX][0-9A-Fa-f](?:_?[0-9A-Fa-f])*n?|0[bB][01](?:_?[01])*n?|0[oO][0-7](?:_?[0-7])*n?|[0-9](?:_?[0-9])*n|(?:[0-9](?:_?[0-9])*(?:\\.(?:_?[0-9](?:_?[0-9])*)?)?|\\.[0-9](?:_?[0-9])*)(?:[eE][+-]?[0-9](?:_?[0-9])*)?))(?![$0-9A-Za-z_.])) ) (?=\\s*(?:/\\*(?:[^*]|\\*(?!/))*\\*/\\s*)*(?://.*|/\\*(?:[^*]|\\*(?!/))*)?$)",
+			"beginCaptures": {
+				"1": { "name": "support.type.property-name.jsonv" },
+				"2": { "name": "support.type.property-name.numeric.jsonv" }
+			},
+			"end": "(?=:)|(,)|(\\})",
+			"endCaptures": {
+				"1": { "name": "invalid.illegal.expected-key-value-separator.jsonv" },
+				"2": { "name": "punctuation.definition.dictionary.end.jsonv invalid.illegal.expected-key-value-separator.jsonv" }
+			},
+			"patterns": [
+				{ "include": "#comments" },
+				{ "match": "[^\\s:,}/]+|/", "name": "invalid.illegal.expected-key-value-separator.jsonv" }
+			]
+		},
 		"array": {
 			"begin": "\\[",
 			"beginCaptures": { "0": { "name": "punctuation.definition.array.begin.jsonv" } },
@@ -165,7 +188,14 @@
 					"begin": "\\G(?=[^\\s,\\]])",
 					"end": "(?=[\\s\\S]|$)",
 					"applyEndPatternLast": 1,
-					"patterns": [{ "include": "#value" }]
+					"patterns": [
+						{ "include": "#value" },
+						{
+							"comment": "an element no #value pattern recognizes (+Infinity, _1, a lone -). Consuming it keeps this region from opening and closing at the same position, which would stop vscode-textmate tokenizing the rest of the line.",
+							"match": "\\G(?:[^\\s,\\[\\]{}:\"'`/]+|[^\\s,\\]])",
+							"name": "invalid.illegal.unrecognized-value.jsonv"
+						}
+					]
 				},
 				{
 					"comment": "anything else found where \",\" or \"]\" was expected -- still recursed into #value so a nested array/object stays balanced and properly scoped underneath the invalid wrapper",
@@ -179,11 +209,13 @@
 		"object": {
 			"begin": "\\{",
 			"beginCaptures": { "0": { "name": "punctuation.definition.dictionary.begin.jsonv" } },
-			"end": "\\}",
+			"comment": "The (?<=\\}) end alternative closes the object when #pendingobjectkey has already consumed its \"}\"; no other rule matched directly in this region ends with \"}\".",
+			"end": "\\}|(?<=\\})",
 			"endCaptures": { "0": { "name": "punctuation.definition.dictionary.end.jsonv" } },
 			"name": "meta.structure.dictionary.jsonv",
 			"patterns": [
 				{ "comment": "the JSON object key", "include": "#objectkey" },
+				{ "include": "#pendingobjectkey" },
 				{ "include": "#comments" },
 				{
 					"begin": ":",
@@ -207,7 +239,14 @@
 					"begin": "\\G(?=[^\\s,\\}])",
 					"end": "(?=[\\s\\S]|$)",
 					"applyEndPatternLast": 1,
-					"patterns": [{ "include": "#value" }]
+					"patterns": [
+						{ "include": "#value" },
+						{
+							"comment": "a value no #value pattern recognizes; see the same rule in #arrayelement",
+							"match": "\\G(?:[^\\s,\\[\\]{}:\"'`/]+|[^\\s,\\}])",
+							"name": "invalid.illegal.unrecognized-value.jsonv"
+						}
+					]
 				},
 				{
 					"comment": "anything appearing where \",\" or \"}\" was expected -- e.g. an orphaned key:value pair caused by a missing comma. The key (if any) is still recognized via #objectkey.",

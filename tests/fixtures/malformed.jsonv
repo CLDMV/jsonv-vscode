@@ -1,5 +1,5 @@
 {
-	"badEscape": "an unrecognized \q escape",
+	"badEscape": "an incomplete \xZ escape",
 	"missingArraySeparator": [1 : 2],
 	"missingPairSeparator": 1 "orphan": 2
 }
