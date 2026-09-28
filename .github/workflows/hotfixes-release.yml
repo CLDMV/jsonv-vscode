@@ -1,5 +1,5 @@
 #
-# @Project: @cldmv/jsonv-vscode
+# @Project: jsonv-vscode
 # @Filename: /.github/workflows/hotfixes-release.yml
 # @Date: 2026-05-22 00:00:00 -07:00 (1779778800)
 # @Author: Nate Corcoran <CLDMV>
@@ -42,7 +42,7 @@ jobs:
         uses: CLDMV/.github/.github/workflows/workflow-hotfixes-release.yml@v4
         with:
             package_name: "jsonv-vscode"
-            build_command: "echo '✓ no build step'"
+            build_command: "npm run build"
         secrets:
             # Map your repo/org secrets to the expected names.
             BOT_APP_CLIENT_ID: ${{ secrets.CLDMV_BOT_APP_CLIENT_ID }}

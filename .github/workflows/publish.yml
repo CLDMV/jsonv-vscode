@@ -1,5 +1,5 @@
 #
-# @Project: @cldmv/jsonv-vscode
+# @Project: jsonv-vscode
 # @Filename: /.github/workflows/publish.yml
 # @Date: 2026-05-20 00:00:00 -07:00 (1779606000)
 # @Author: Nate Corcoran <CLDMV>
@@ -113,7 +113,7 @@ jobs:
             max_node_major: ${{ github.event.inputs.max_node_major || '' }} # blank ⇒ inherit the CLDMV/.github reusable default
             test_command: "npm test"
             test_environment: ${{ github.event.inputs.test_environment || 'development' }} # Alternative to setting in test_command
-            build_command: "echo '✓ no build step here (VS Code extension is packaged separately)'"
+            build_command: "npm run build" # runs 'vsce package' to validate the extension packages cleanly
             # --- Satellite packages (optional) ----------------------------------------
             # Publish extra packages carved from this build's output (e.g. locale JSON,
             # generated types) at the SAME version/commit as the core, each with its own

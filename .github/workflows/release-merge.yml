@@ -1,6 +1,8 @@
 #
-# @Project: @cldmv/jsonv-vscode
+# @Project: jsonv-vscode
 # @Filename: /.github/workflows/release-merge.yml
+# @Author: Nate Corcoran <CLDMV>
+# @Email: <Shinrai@users.noreply.github.com>
 # @Copyright: Copyright (c) 2013-2026 Catalyzed Motivation Inc. All rights reserved.
 #
 
@@ -36,12 +38,11 @@
 # finishes LAST can see a fully green head; if it isn't listed, nothing re-fires
 # and the PR sits approved + green until you dispatch this workflow by hand.
 # CodeQL in particular routinely outlasts ci.yml (CLDMV/.github PR #322 stuck
-# exactly this way). The list below covers this repo's actual check-producing
-# workflows by their `name:`s — names are matched literally (not by filename),
-# so fix any you rename, and add any extra PR-triggered workflow this repo
-# gains. Listing a workflow the repo doesn't have is harmless. `branches:`
-# limits re-fires to runs on the integration branches, so feature-branch CI
-# doesn't wake this up.
+# exactly this way). The list below covers the standard v4 template set by their
+# template `name:`s — names are matched literally (not by filename), so fix any
+# you renamed, and add any extra PR-triggered workflow your repo has. Listing a
+# workflow your repo doesn't have is harmless. `branches:` limits re-fires to
+# runs on the integration branches, so feature-branch CI doesn't wake this up.
 #
 # Thin caller: all logic lives in the reusable, pinned at @v4.
 # NOTE: pull_request_review / workflow_run events run the copy of this file on
@@ -56,6 +57,7 @@ on:
             - "🧪 CI Tests & Build"
             - "🔍 CodeQL"
             - "🔒 Dependency Review"
+            - "📊 Bundle Size"
             - "🚀 Next Release (v4)"
             - "🚑 Hotfixes Release (v4)"
             - "🌿 Branch Retention"
