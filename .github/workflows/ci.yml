@@ -207,7 +207,7 @@ jobs:
       # per-version regression. workflow_dispatch can still opt out (set false).
       lts_only_matrix: ${{ github.event.inputs.lts_only_matrix != 'false' }}
       package_manager: ${{ github.event.inputs.package_manager || 'npm' }}
-      test_command: "echo '✓ no tests defined'"
+      test_command: "npm test"
       # test_command: "NODE_ENV=test npm test"  # Override NODE_ENV only
       test_environment: ${{ github.event.inputs.test_environment || 'development' }} # Alternative to setting in test_command
       build_command: "npm run build" # runs 'vsce package' to validate the extension packages cleanly
@@ -215,11 +215,15 @@ jobs:
       skip_matrix_tests: false
 
       # ── Coverage badge ─────────────────────────────────────────────────────
-      # Runs after a successful CI build; pushes a Shields.io-compatible badge
-      # JSON to the `badges` branch (signed commit via bot GPG).
-      # Only runs on direct pushes to default_branch — PRs and feature branches
-      # are automatically skipped so coverage always reflects merged master code.
-      # Requires: the coverage_command produces coverage/coverage-summary.json
+      # THIS REPO: jsonv-vscode is a declarative VS Code extension (TextMate
+      # grammar JSON + package.json contributions) with no JavaScript source
+      # to instrument — tests/ tokenizes .jsonv fixtures through the real
+      # grammar and validates the package.json contributes wiring (see
+      # tests/grammar.test.vitest.mjs + tests/contributes.test.vitest.mjs),
+      # but a coverage percentage over zero lines of source isn't a
+      # meaningful number, so no coverage_command/summary is wired and no
+      # `badges` branch exists for this repo. Leave enable_coverage_badge
+      # false unless the repo gains real JS/TS source to instrument.
       enable_coverage_badge: false
       default_branch: ${{ github.event.inputs.default_branch || 'master' }} # Badge only pushed when a push lands on this branch
       coverage_command: ${{ github.event.inputs.coverage_command || 'npm run ci:coverage' }}
@@ -229,13 +233,14 @@ jobs:
       upload_coverage_artifact: ${{ github.event.inputs.upload_coverage_artifact != 'false' }}
 
       # ── Type check (runs inside the coverage-badge job) ────────────────────
+      # No TypeScript in this repo (JSON grammar + package.json only) — there
+      # is nothing for `tsc` to check, so this stays skipped.
       type_check_command: ${{ github.event.inputs.type_check_command || 'npm run test:types' }}
       skip_type_check: true
 
       # ── PR coverage badge ─────────────────────────────────────────────────
-      # Injects a Shields.io badge + breakdown table directly into the PR body
-      # on every push to the PR branch. Only fires on pull_request events;
-      # skipped automatically on push and workflow_dispatch. No files committed.
+      # Same reasoning as enable_coverage_badge above — no JS source, no
+      # coverage number to inject into the PR body.
       enable_coverage_pr_comment: false
 
     # Authentication & Bot Configuration
