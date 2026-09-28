@@ -58,6 +58,7 @@ export function loadJsonvGrammar() {
  * @property {string} text
  * @property {string[]} scopes
  * @property {string} line
+ * @property {number} lineNumber 1-based line number of `line` within the source
  */
 
 /**
@@ -73,10 +74,10 @@ export function tokenize(grammar, source) {
 	let ruleStack = INITIAL;
 	/** @type {JsonvToken[]} */
 	const flat = [];
-	for (const line of lines) {
+	for (const [index, line] of lines.entries()) {
 		const { tokens, ruleStack: nextRuleStack } = grammar.tokenizeLine(line, ruleStack);
 		for (const token of tokens) {
-			flat.push({ text: line.substring(token.startIndex, token.endIndex), scopes: token.scopes, line });
+			flat.push({ text: line.substring(token.startIndex, token.endIndex), scopes: token.scopes, line, lineNumber: index + 1 });
 		}
 		ruleStack = nextRuleStack;
 	}
