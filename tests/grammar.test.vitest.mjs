@@ -151,27 +151,124 @@ describe("malformed input", () => {
 		expect(hasScope(badEscape, "invalid.illegal.unrecognized-string-escape.jsonv")).toBe(true);
 	});
 
-	it("flags a token that cannot start a value, in an array position expecting a separator, as invalid.illegal", () => {
-		// [1 : 2] — the grammar's #value patterns greedily re-match a second valid
-		// value with no comma between (see the README caveat this run surfaced), so
-		// only a token that cannot itself start a #value (like this bare colon)
-		// actually trips the array's expected-separator catch-all.
+	it("flags both the token that cannot start a value and the value that follows it, in an array position expecting a separator, as invalid.illegal", () => {
+		// [1 : 2] — after `1`, the bare colon can't start a #value and trips the
+		// array's expected-separator catch-all; since no comma ever follows, the
+		// grammar keeps treating the array as still missing its separator, so `2`
+		// (which — absent the missing comma — would otherwise read as a perfectly
+		// legitimate second element) is flagged too.
 		const flagged = malformedTokens.filter((t) => hasScope(t, "invalid.illegal.expected-array-separator.jsonv"));
 		expect(flagged.length).toBeGreaterThan(0);
-		expect(flagged.every((t) => t.text === ":")).toBe(true);
+		expect(flagged.some((t) => t.text === ":")).toBe(true);
+		expect(flagged.some((t) => t.text === "2")).toBe(true);
 	});
 
-	it("flags the colon of an orphaned second pair (missing comma) as invalid.illegal in the dictionary value slot", () => {
+	it("flags an orphaned second pair (missing comma) as invalid.illegal while still scoping its key as a property name", () => {
 		// "missingPairSeparator": 1 "orphan": 2 — with no comma after `1`, the
-		// dictionary's value-slot keeps consuming: "orphan" is absorbed as a second
-		// #value (a plain string, NOT a property-name — see the grammar-behavior note
-		// in the report), and it's the colon *after* "orphan" that trips
-		// expected-dictionary-separator, not "orphan" itself.
+		// dictionary value-slot flags the orphaned pair as invalid.illegal, but
+		// "orphan" is still recognized structurally as a property name (not
+		// absorbed as a plain string value the way the pre-fix grammar did), and
+		// the colon that follows it is likewise inside the invalid span.
 		const orphanString = tokenAt(malformedTokens, "orphan");
-		expect(hasScope(orphanString, "string.quoted.double.jsonv")).toBe(true);
-		expect(hasScope(orphanString, "support.type.property-name")).toBe(false);
+		expect(hasScope(orphanString, "string.quoted.double.jsonv.support.type.property-name.jsonv")).toBe(true);
+		expect(hasScope(orphanString, "invalid.illegal.expected-dictionary-separator.jsonv")).toBe(true);
 
 		const trailingColons = malformedTokens.filter((t) => t.text === ":" && hasScope(t, "invalid.illegal.expected-dictionary-separator.jsonv"));
 		expect(trailingColons.length).toBeGreaterThan(0);
+	});
+});
+
+describe("missing separator (issue #19)", () => {
+	it("flags every value after the first as invalid.illegal.expected-array-separator when a heterogeneous array has no commas at all", () => {
+		const tokens = tokenize(grammar, '[1 "a" true]');
+
+		const firstNumber = tokenAt(tokens, "1");
+		expect(hasScope(firstNumber, "constant.numeric.jsonv")).toBe(true);
+		expect(hasScope(firstNumber, "invalid.illegal.expected-array-separator.jsonv")).toBe(false);
+
+		const secondString = tokenAt(tokens, "a");
+		expect(hasScope(secondString, "invalid.illegal.expected-array-separator.jsonv")).toBe(true);
+		expect(hasScope(secondString, "string.quoted.double.jsonv")).toBe(true);
+
+		const thirdConstant = tokenAt(tokens, "true");
+		expect(hasScope(thirdConstant, "invalid.illegal.expected-array-separator.jsonv")).toBe(true);
+		expect(hasScope(thirdConstant, "constant.language.jsonv")).toBe(true);
+	});
+
+	it("flags a second nested array with no comma between it and the first, while both stay fully and correctly recognized as arrays", () => {
+		const tokens = tokenize(grammar, "[[1] [2]]");
+
+		const openBrackets = tokens.filter((t) => t.text === "[" && hasScope(t, "punctuation.definition.array.begin.jsonv"));
+		const closeBrackets = tokens.filter((t) => t.text === "]" && hasScope(t, "punctuation.definition.array.end.jsonv"));
+		expect(openBrackets.length).toBe(3); // outer + first inner + second inner
+		expect(closeBrackets.length).toBe(3); // brackets stay balanced even through the violation
+
+		const firstInner = tokenAt(tokens, "1");
+		expect(hasScope(firstInner, "invalid.illegal.expected-array-separator.jsonv")).toBe(false);
+
+		const secondInner = tokenAt(tokens, "2");
+		expect(hasScope(secondInner, "invalid.illegal.expected-array-separator.jsonv")).toBe(true);
+		expect(hasScope(secondInner, "meta.structure.array.jsonv")).toBe(true);
+	});
+
+	it('flags an orphaned key:value pair after a nested empty object value, e.g. {"a":{} "b":1}', () => {
+		const tokens = tokenize(grammar, '{"a":{} "b":1}');
+
+		const nestedObjectBraces = tokens.filter((t) => hasScope(t, "punctuation.definition.dictionary.begin.jsonv") || hasScope(t, "punctuation.definition.dictionary.end.jsonv"));
+		expect(nestedObjectBraces.length).toBe(4); // outer {, nested {}, outer }
+
+		const orphanKey = tokenAt(tokens, "b");
+		expect(hasScope(orphanKey, "string.quoted.double.jsonv.support.type.property-name.jsonv")).toBe(true);
+		expect(hasScope(orphanKey, "invalid.illegal.expected-dictionary-separator.jsonv")).toBe(true);
+
+		const orphanValue = tokenAt(tokens, "1");
+		expect(hasScope(orphanValue, "invalid.illegal.expected-dictionary-separator.jsonv")).toBe(true);
+	});
+
+	it("flags a missing comma across a newline, without flagging the legitimate first element", () => {
+		const tokens = tokenize(grammar, "[1\n  2\n]");
+
+		const first = tokenAt(tokens, "1");
+		expect(hasScope(first, "invalid.illegal.expected-array-separator.jsonv")).toBe(false);
+
+		const second = tokenAt(tokens, "2");
+		expect(hasScope(second, "invalid.illegal.expected-array-separator.jsonv")).toBe(true);
+	});
+
+	it("does NOT flag a legitimate comma-separated element that starts on the next line", () => {
+		const tokens = tokenize(grammar, "[1,\n  2\n]");
+
+		for (const text of ["1", "2"]) {
+			const token = tokenAt(tokens, text);
+			expect(hasScope(token, "invalid.illegal.expected-array-separator.jsonv")).toBe(false);
+		}
+	});
+
+	it("does NOT flag a trailing comma in an array or object", () => {
+		const arrayTokens = tokenize(grammar, "[1, 2,]");
+		for (const text of ["1", "2"]) {
+			expect(hasScope(tokenAt(arrayTokens, text), "invalid.illegal.expected-array-separator.jsonv")).toBe(false);
+		}
+
+		const objectTokens = tokenize(grammar, '{"a":1,}');
+		expect(hasScope(tokenAt(objectTokens, "1"), "invalid.illegal.expected-dictionary-separator.jsonv")).toBe(false);
+	});
+
+	it("does NOT flag a value that follows a comment sitting between two properly comma-separated elements", () => {
+		const tokens = tokenize(grammar, "[1, /* c */ 2]");
+		const second = tokenAt(tokens, "2");
+		expect(hasScope(second, "invalid.illegal.expected-array-separator.jsonv")).toBe(false);
+		expect(hasScope(second, "constant.numeric.jsonv")).toBe(true);
+	});
+
+	it("does NOT flag multi-line array/object values that are already valid (no regression on ordinary formatting)", () => {
+		const tokens = tokenize(grammar, '{\n\t"a": [1,\n\t\t2,\n\t\t3\n\t],\n\t"b": {\n\t\t"c": 1\n\t}\n}');
+		const numbers = tokens.filter((t) => ["1", "2", "3"].includes(t.text));
+		expect(numbers.length).toBe(4); // the three array elements + "c"'s value
+		for (const number of numbers) {
+			expect(hasScope(number, "invalid.illegal.expected-array-separator.jsonv")).toBe(false);
+			expect(hasScope(number, "invalid.illegal.expected-dictionary-separator.jsonv")).toBe(false);
+		}
+		expect(hasScope(tokenAt(tokens, "c"), "invalid.illegal.expected-dictionary-separator.jsonv")).toBe(false);
 	});
 });
