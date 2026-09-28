@@ -110,34 +110,31 @@
 			"end": "\\]",
 			"endCaptures": { "0": { "name": "punctuation.definition.array.end.jsonv" } },
 			"name": "meta.structure.array.jsonv",
-			"patterns": [{ "include": "#comments" }, { "include": "#arraytail" }]
+			"patterns": [
+				{ "include": "#comments" },
+				{ "match": ",", "name": "punctuation.separator.array.jsonv" },
+				{ "include": "#arrayelement" }
+			]
 		},
-		"arraytail": {
-			"comment": "Spans from just after the array's own \"[\" (tolerating leading whitespace/comments) to its closing \"]\". Exactly one value is accepted per comma; anything else found where \",\" or \"]\" was expected is flagged expected-array-separator.",
-			"begin": "(?:\\s|//[^\\n]*\\n?|/\\*[^*]*\\*+(?:[^*/][^*]*\\*+)*/)*",
-			"end": "(?=\\])",
+		"arrayelement": {
+			"comment": "A single element's own region, freshly located -- via the array's own ongoing, per-line pattern search, which is what lets this find the element wherever it is (even many lines after \"[\" or a \",\") -- by a zero-width lookahead at the element's actual start. \\G inside always anchors there regardless of line breaks, because this region is entered fresh for every element instead of being reused across the whole array.",
+			"begin": "(?=[^\\s,\\]])",
+			"end": "(?=[,\\]])",
 			"patterns": [
 				{ "include": "#comments" },
 				{
-					"comment": "the first element, or the element right after a real comma",
-					"begin": "\\G(?=[^\\s\\]])",
+					"comment": "the element itself, matched exactly once",
+					"begin": "\\G(?=[^\\s,\\]])",
 					"end": "(?=[\\s\\S]|$)",
 					"applyEndPatternLast": 1,
 					"patterns": [{ "include": "#value" }]
-				},
-				{
-					"begin": ",",
-					"beginCaptures": { "0": { "name": "punctuation.separator.array.jsonv" } },
-					"end": "(?=[^\\s])",
-					"applyEndPatternLast": 1,
-					"patterns": [{ "include": "#comments" }, { "include": "#value" }]
 				},
 				{
 					"comment": "anything else found where \",\" or \"]\" was expected -- still recursed into #value so a nested array/object stays balanced and properly scoped underneath the invalid wrapper",
 					"begin": "(?=[^\\s,\\]])",
 					"end": "(?=[\\s,\\]])",
 					"name": "invalid.illegal.expected-array-separator.jsonv",
-					"patterns": [{ "include": "#value" }]
+					"patterns": [{ "include": "#comments" }, { "include": "#value" }]
 				}
 			]
 		},
@@ -151,29 +148,36 @@
 				{ "comment": "the JSON object key", "include": "#objectkey" },
 				{ "include": "#comments" },
 				{
-					"begin": "(:)(?:\\s|//[^\\n]*\\n?|/\\*[^*]*\\*+(?:[^*/][^*]*\\*+)*/)*",
-					"beginCaptures": { "1": { "name": "punctuation.separator.dictionary.key-value.jsonv" } },
+					"begin": ":",
+					"beginCaptures": { "0": { "name": "punctuation.separator.dictionary.key-value.jsonv" } },
 					"end": "(,)|(?=\\})",
 					"endCaptures": { "1": { "name": "punctuation.separator.dictionary.pair.jsonv" } },
 					"name": "meta.structure.dictionary.value.jsonv",
-					"patterns": [
-						{
-							"comment": "the JSON object value",
-							"begin": "\\G(?=[^\\s,\\}])",
-							"end": "(?=[\\s\\S]|$)",
-							"applyEndPatternLast": 1,
-							"patterns": [{ "include": "#value" }]
-						},
-						{
-							"comment": "anything appearing where \",\" or \"}\" was expected -- e.g. an orphaned key:value pair caused by a missing comma. The key (if any) is still recognized via #objectkey.",
-							"begin": "(?=[^\\s,\\}])",
-							"end": "(?=[\\s,\\}])",
-							"name": "invalid.illegal.expected-dictionary-separator.jsonv",
-							"patterns": [{ "include": "#objectkey" }, { "include": "#value" }]
-						}
-					]
+					"patterns": [{ "include": "#comments" }, { "include": "#dictionaryvalueelement" }]
 				},
 				{ "match": "[^\\s\\}]", "name": "invalid.illegal.expected-dictionary-separator.jsonv" }
+			]
+		},
+		"dictionaryvalueelement": {
+			"comment": "The object value's own region, freshly located (same technique as #arrayelement) by a zero-width lookahead at the value's actual start, so \\G anchors correctly even when the value is pushed to a line after the \":\".",
+			"begin": "(?=[^\\s,\\}])",
+			"end": "(?=[,\\}])",
+			"patterns": [
+				{ "include": "#comments" },
+				{
+					"comment": "the object value itself, matched exactly once",
+					"begin": "\\G(?=[^\\s,\\}])",
+					"end": "(?=[\\s\\S]|$)",
+					"applyEndPatternLast": 1,
+					"patterns": [{ "include": "#value" }]
+				},
+				{
+					"comment": "anything appearing where \",\" or \"}\" was expected -- e.g. an orphaned key:value pair caused by a missing comma. The key (if any) is still recognized via #objectkey.",
+					"begin": "(?=[^\\s,\\}])",
+					"end": "(?=[\\s,\\}])",
+					"name": "invalid.illegal.expected-dictionary-separator.jsonv",
+					"patterns": [{ "include": "#comments" }, { "include": "#objectkey" }, { "include": "#value" }]
+				}
 			]
 		},
 		"value": {

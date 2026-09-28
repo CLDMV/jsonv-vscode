@@ -272,3 +272,85 @@ describe("missing separator (issue #19)", () => {
 		expect(hasScope(tokenAt(tokens, "c"), "invalid.illegal.expected-dictionary-separator.jsonv")).toBe(false);
 	});
 });
+
+/**
+ * Asserts that NO token anywhere in `source` carries any `invalid.illegal.*`
+ * scope -- the strongest possible "this is valid, ordinarily-formatted input"
+ * check, independent of which specific token a weaker assertion might miss.
+ * @param {string} source
+ */
+function expectNoInvalidScopes(source) {
+	const tokens = tokenize(grammar, source);
+	const flagged = tokens.filter((t) => t.scopes.some((s) => s.startsWith("invalid.illegal")));
+	expect(flagged.map((t) => t.text)).toEqual([]);
+}
+
+describe("no false positives across line breaks (regression for the #arrayelement/#dictionaryvalueelement rework)", () => {
+	// A prior fix for #19 anchored a \G lookahead to the array's/value-slot's OWN
+	// entry point ("[" or ":"), which only holds when the first element sits on
+	// that SAME line. Any formatter that puts "[" or ":" alone on a line (which
+	// is most of them, including prettier) then pushed the first element to the
+	// next line, and that stale \G anchor wrongly flagged it. The fix anchors
+	// each element in its OWN freshly-entered region instead (#arrayelement /
+	// #dictionaryvalueelement), found via the array's/object's own ongoing,
+	// per-line pattern search -- so \G is always fresh, regardless of which
+	// physical line the element land on.
+	it("does not flag the first element of a plainly-formatted multi-line array", () => {
+		expectNoInvalidScopes("[\n\t1,\n\t2\n]");
+	});
+
+	it("does not flag the first element of a nested array value inside an object", () => {
+		expectNoInvalidScopes('{\n\t"list": [\n\t\t"a",\n\t\t"b"\n\t]\n}');
+	});
+
+	it("does not flag an object value pushed to the line after its own colon", () => {
+		expectNoInvalidScopes('{\n\t"a":\n\t\t1\n}');
+	});
+
+	it("does not flag a first array element that is itself a multi-line object", () => {
+		expectNoInvalidScopes('[\n\t{ "a": 1 },\n\t{ "b": 2 }\n]');
+	});
+
+	it("does not flag a plain single-line comma-separated array (sanity control)", () => {
+		expectNoInvalidScopes("[1, 2]");
+	});
+
+	it("does not flag CRLF-terminated lines in an array or object", () => {
+		expectNoInvalidScopes("[\r\n\t1,\r\n\t2\r\n]");
+		expectNoInvalidScopes('{\r\n\t"a": 1,\r\n\t"b": 2\r\n}');
+	});
+
+	it("does not flag space-indented, tab-indented, or mixed-indentation arrays", () => {
+		expectNoInvalidScopes("[\n    1,\n    2\n]");
+		expectNoInvalidScopes("[\n\t1,\n\t2\n]");
+		expectNoInvalidScopes("[\n \t1,\n\t 2\n]");
+	});
+
+	it("does not flag a line or block comment sitting alone on its own line between the opening bracket and the first element", () => {
+		expectNoInvalidScopes("[\n\t// note\n\t1,\n\t2\n]");
+		expectNoInvalidScopes("[\n\t/* note */\n\t1,\n\t2\n]");
+		expectNoInvalidScopes('{\n\t"a":\n\t\t// note\n\t\t1\n}');
+	});
+
+	it("does not flag a deeply nested, fully formatted structure", () => {
+		expectNoInvalidScopes('{\n\t"a": [\n\t\t{\n\t\t\t"b": [\n\t\t\t\t1,\n\t\t\t\t2\n\t\t\t]\n\t\t},\n\t\t3\n\t]\n}');
+	});
+
+	it("does not flag any #value kind when it is the first array element on its own line", () => {
+		expectNoInvalidScopes('[\n\t"hello",\n\t2\n]'); // double-quoted string
+		expectNoInvalidScopes("[\n\t'hello',\n\t2\n]"); // single-quoted string
+		expectNoInvalidScopes("[\n\t`hi ${1}`,\n\t2\n]"); // template literal + interpolation
+		expectNoInvalidScopes("[\n\t3.14,\n\t2\n]"); // float
+		expectNoInvalidScopes("[\n\t0xFF,\n\t2\n]"); // hex number
+		expectNoInvalidScopes("[\n\ttrue,\n\t2\n]"); // constant
+		expectNoInvalidScopes("[\n\tnull,\n\t2\n]"); // constant
+		expectNoInvalidScopes("[\n\t[1, 2],\n\t3\n]"); // nested array
+		expectNoInvalidScopes('[\n\t{ "x": 1 },\n\t2\n]'); // nested object
+	});
+
+	it("still flags a genuinely missing comma across a newline (the fix doesn't regress detection itself)", () => {
+		const tokens = tokenize(grammar, "[1\n  2\n]");
+		expect(hasScope(tokenAt(tokens, "1"), "invalid.illegal.expected-array-separator.jsonv")).toBe(false);
+		expect(hasScope(tokenAt(tokens, "2"), "invalid.illegal.expected-array-separator.jsonv")).toBe(true);
+	});
+});
