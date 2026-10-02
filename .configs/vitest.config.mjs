@@ -1,3 +1,18 @@
+/**
+ *
+ *	@Project: cldmv.jsonv-vscode
+ *	@Filename: /.configs/vitest.config.mjs
+ *	@Date: 2026-09-28T19:26:21+00:00 (1790623581)
+ *	@Author: Nate Corcoran <CLDMV>
+ *	@Email: <Shinrai@users.noreply.github.com>
+ *	-----
+ *	@Last modified by: Nate Corcoran <CLDMV> (Shinrai@users.noreply.github.com)
+ *	@Last modified time: 2026-10-02T11:31:08-07:00 (1790965868)
+ *	-----
+ *	@Copyright: Copyright (c) 2013-2026 Catalyzed Motivation Inc. All rights reserved.
+ *
+ */
+
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 import path from "node:path";

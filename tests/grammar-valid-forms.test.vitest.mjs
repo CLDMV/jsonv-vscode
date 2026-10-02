@@ -1,4 +1,19 @@
 /**
+ *
+ *	@Project: cldmv.jsonv-vscode
+ *	@Filename: /tests/grammar-valid-forms.test.vitest.mjs
+ *	@Date: 2026-09-28T19:26:21+00:00 (1790623581)
+ *	@Author: Nate Corcoran <CLDMV>
+ *	@Email: <Shinrai@users.noreply.github.com>
+ *	-----
+ *	@Last modified by: Nate Corcoran <CLDMV> (Shinrai@users.noreply.github.com)
+ *	@Last modified time: 2026-10-02T11:31:11-07:00 (1790965871)
+ *	-----
+ *	@Copyright: Copyright (c) 2013-2026 Catalyzed Motivation Inc. All rights reserved.
+ *
+ */
+
+/**
  * @fileoverview Scope assertions for the value and key forms that @cldmv/jsonv accepts
  * beyond plain JSON: internal references with member access (also inside template
  * interpolation), NaN / signed Infinity, numeric and keyword keys, $/_-prefixed keys,

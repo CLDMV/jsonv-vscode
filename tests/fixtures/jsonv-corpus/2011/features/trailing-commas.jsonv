@@ -1,3 +1,18 @@
+/**
+ *
+ *	@Project: cldmv.jsonv-vscode
+ *	@Filename: /tests/fixtures/jsonv-corpus/2011/features/trailing-commas.jsonv
+ *	@Date: 2026-09-28T19:26:21+00:00 (1790623581)
+ *	@Author: Nate Corcoran <CLDMV>
+ *	@Email: <Shinrai@users.noreply.github.com>
+ *	-----
+ *	@Last modified by: Nate Corcoran <CLDMV> (Shinrai@users.noreply.github.com)
+ *	@Last modified time: 2026-10-02T11:31:10-07:00 (1790965870)
+ *	-----
+ *	@Copyright: Copyright (c) 2013-2026 Catalyzed Motivation Inc. All rights reserved.
+ *
+ */
+
 // Test file for trailing commas (JSON5/ES2011 feature)
 // Demonstrates trailing commas in objects and arrays throughout the structure
 // Includes realistic e-commerce product catalog bloat

@@ -2,7 +2,7 @@
 	"name": "jsonv-vscode",
 	"displayName": "JSONV Language Support",
 	"description": "VS Code language support for .jsonv files (JSON5 + ES2015-2025 features)",
-	"version": "0.1.6",
+	"version": "0.1.7",
 	"publisher": "cldmv",
 	"license": "Apache-2.0",
 	"scripts": {
@@ -10,9 +10,12 @@
 		"clean": "rimraf --glob ./*.vsix",
 		"install:local": "npm run build && node -e \"require('child_process').execSync('code --install-extension ' + require('glob').sync('*.vsix')[0], {stdio: 'inherit'})\"",
 		"test": "node tests/run-vitest.mjs",
-		"test:watch": "vitest --config .configs/vitest.config.mjs"
+		"test:watch": "vitest --config .configs/vitest.config.mjs",
+		"fix:headers": "fix-headers --config .configs/fix-headers.json"
 	},
 	"devDependencies": {
+		"@cldmv/configs": "^1.2.0",
+		"@cldmv/fix-headers": "^2.1.1",
 		"@cldmv/vitest-runner": "^1.4.3",
 		"@vscode/vsce": "^4.0.0",
 		"vitest": "^5.0.2",

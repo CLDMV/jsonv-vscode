@@ -1,4 +1,19 @@
 /**
+ *
+ *	@Project: cldmv.jsonv-vscode
+ *	@Filename: /tests/run-vitest.mjs
+ *	@Date: 2026-09-28T19:26:21+00:00 (1790623581)
+ *	@Author: Nate Corcoran <CLDMV>
+ *	@Email: <Shinrai@users.noreply.github.com>
+ *	-----
+ *	@Last modified by: Nate Corcoran <CLDMV> (Shinrai@users.noreply.github.com)
+ *	@Last modified time: 2026-10-02T11:31:11-07:00 (1790965871)
+ *	-----
+ *	@Copyright: Copyright (c) 2013-2026 Catalyzed Motivation Inc. All rights reserved.
+ *
+ */
+
+/**
  * @fileoverview OOM-safe Vitest runner for jsonv-vscode — delegates to
  * @cldmv/vitest-runner, which spawns each test file in its own child process. There is no
  * JavaScript source in this repo (a declarative VS Code extension: TextMate grammar JSON +
