@@ -1,4 +1,19 @@
 /**
+ *
+ *	@Project: cldmv.jsonv-vscode
+ *	@Filename: /tests/contributes.test.vitest.mjs
+ *	@Date: 2026-09-28T19:26:21+00:00 (1790623581)
+ *	@Author: Nate Corcoran <CLDMV>
+ *	@Email: <Shinrai@users.noreply.github.com>
+ *	-----
+ *	@Last modified by: Nate Corcoran <CLDMV> (Shinrai@users.noreply.github.com)
+ *	@Last modified time: 2026-10-02T11:31:09-07:00 (1790965869)
+ *	-----
+ *	@Copyright: Copyright (c) 2013-2026 Catalyzed Motivation Inc. All rights reserved.
+ *
+ */
+
+/**
  * @fileoverview Validates package.json's `contributes` block against the files it
  * points at: every referenced path actually exists and parses as the file type VS Code
  * expects (JSON language-configuration, JSON TextMate grammar, SVG icons), and the

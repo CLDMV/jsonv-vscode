@@ -1,4 +1,19 @@
 /**
+ *
+ *	@Project: cldmv.jsonv-vscode
+ *	@Filename: /tests/grammar-corpus.test.vitest.mjs
+ *	@Date: 2026-09-28T19:26:21+00:00 (1790623581)
+ *	@Author: Nate Corcoran <CLDMV>
+ *	@Email: <Shinrai@users.noreply.github.com>
+ *	-----
+ *	@Last modified by: Nate Corcoran <CLDMV> (Shinrai@users.noreply.github.com)
+ *	@Last modified time: 2026-10-02T11:31:11-07:00 (1790965871)
+ *	-----
+ *	@Copyright: Copyright (c) 2013-2026 Catalyzed Motivation Inc. All rights reserved.
+ *
+ */
+
+/**
  * @fileoverview Tokenizes every valid jsonv fixture vendored from CLDMV/jsonv (see
  * tests/fixtures/jsonv-corpus/README.md) with the extension's TextMate grammar, through
  * the real vscode-textmate + vscode-oniguruma engine, and asserts that no token carries
