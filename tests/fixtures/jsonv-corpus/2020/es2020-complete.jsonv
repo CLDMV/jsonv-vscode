@@ -1,3 +1,18 @@
+/**
+ *
+ *	@Project: cldmv.jsonv-vscode
+ *	@Filename: /tests/fixtures/jsonv-corpus/2020/es2020-complete.jsonv
+ *	@Date: 2026-09-28T19:26:21+00:00 (1790623581)
+ *	@Author: Nate Corcoran <CLDMV>
+ *	@Email: <Shinrai@users.noreply.github.com>
+ *	-----
+ *	@Last modified by: Nate Corcoran <CLDMV> (Shinrai@users.noreply.github.com)
+ *	@Last modified time: 2026-10-02T11:31:10-07:00 (1790965870)
+ *	-----
+ *	@Copyright: Copyright (c) 2013-2026 Catalyzed Motivation Inc. All rights reserved.
+ *
+ */
+
 // ES2020 Comprehensive Test File
 // Demonstrates ALL ES2020 features (BigInt) + ES2015 + JSON5 base
 // Minimum 200-300 lines with realistic bloat
