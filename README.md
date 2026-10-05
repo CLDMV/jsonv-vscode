@@ -9,7 +9,7 @@ https://github.com/CLDMV/jsonv
 
 ### Latest: v0.1.10 (October 2026)
 
-- **Dev-tooling dependency bump ([#43](https://github.com/CLDMV/jsonv-vscode/pull/43))** — `@cldmv/fix-headers` moves from 2.1.1 to 2.1.4, the tool that maintains the repository's file headers. It produced no header changes here, so only `package.json` and the lockfile changed. The grammar and language configuration are unchanged; it's a drop-in replacement for the previous version.
+- **Dev-tooling dependency bump ([#43](https://github.com/CLDMV/jsonv-vscode/pull/43), [#46](https://github.com/CLDMV/jsonv-vscode/pull/46))** — `@cldmv/fix-headers` moves from 2.1.1 to 2.2.0, so `@Last modified by` now follows content edits only, and `@cldmv/configs` moves from 1.2.0 to 1.2.4, whose shared config no longer forces the author fields. Neither changed any file header here. The grammar and language configuration are unchanged; it's a drop-in replacement for the previous version.
 - [View full v0.1.10 Changelog](https://github.com/CLDMV/jsonv-vscode/blob/master/docs/changelog/v0/v0.1.10.md)
 
 ### Recent Releases
