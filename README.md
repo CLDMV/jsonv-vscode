@@ -7,18 +7,17 @@ https://github.com/CLDMV/jsonv
 
 ## ✨ What's New
 
-### Latest: v0.1.6 (September 2026)
+### Latest: v0.1.10 (October 2026)
 
-- **Grammar error detection now agrees with the `@cldmv/jsonv` parser** — a missing comma between array/object values is flagged, and valid jsonv (bare references, `NaN`/`-Infinity`, numeric keys, trailing-dot decimals, `$`-prefixed keys, and several other edge cases) no longer gets highlighted as invalid.
-- **Migrated from the deprecated `vsce` package to `@vscode/vsce`**, with a `.vscodeignore` and a `package-contents` test that guard the packaged `.vsix` against shipping an empty or bloated extension.
-- [View full v0.1.6 Changelog](https://github.com/CLDMV/jsonv-vscode/blob/master/docs/changelog/v0/v0.1.6.md)
+- **Dev-tooling dependency bump ([#43](https://github.com/CLDMV/jsonv-vscode/pull/43), [#46](https://github.com/CLDMV/jsonv-vscode/pull/46))** — `@cldmv/fix-headers` moves from 2.1.1 to 2.2.0, so `@Last modified by` now follows content edits only, and `@cldmv/configs` moves from 1.2.0 to 1.2.4, whose shared config no longer forces the author fields. Neither changed any file header here. The grammar and language configuration are unchanged; it's a drop-in replacement for the previous version.
+- [View full v0.1.10 Changelog](https://github.com/CLDMV/jsonv-vscode/blob/master/docs/changelog/v0/v0.1.10.md)
 
 ### Recent Releases
 
-- **v0.1.5** (September 2026) — bump the Node CI matrix for vitest 5 (max→26, min→22.12.0) ([Release PR](https://github.com/CLDMV/jsonv-vscode/pull/14))
-- **v0.1.4** (September 2026) — adopt the v4 reusable workflow flow and sign the security cherry-pick ([Release PR](https://github.com/CLDMV/jsonv-vscode/pull/12))
-- **v0.1.3** (August 2026) — bump `brace-expansion` ([Release PR](https://github.com/CLDMV/jsonv-vscode/pull/10))
-- **v0.1.2** (August 2026) — derive the release base in a never-supersede concurrency group ([Release PR](https://github.com/CLDMV/jsonv-vscode/pull/7))
+- **v0.1.9** (October 2026) — CI only: the in-repo PR mirror job now always runs and reports under a non-required name instead of being skipped ([Changelog](https://github.com/CLDMV/jsonv-vscode/blob/master/docs/changelog/v0/v0.1.9.md))
+- **v0.1.8** (October 2026) — CI only: a skipped PR-run mirror job no longer satisfies the `✅ Required PR Check` ruleset gate; `@cldmv/vitest-runner` 1.5.1 ([Changelog](https://github.com/CLDMV/jsonv-vscode/blob/master/docs/changelog/v0/v0.1.8.md))
+- **v0.1.7** (October 2026) — shared CLDMV fix-headers config with uniform comment headers on workflows, tests and fixtures; the packaged extension is unchanged ([Changelog](https://github.com/CLDMV/jsonv-vscode/blob/master/docs/changelog/v0/v0.1.7.md))
+- **v0.1.6** (September 2026) — grammar error detection now agrees with the `@cldmv/jsonv` parser (missing commas flagged, valid forms no longer painted red), and packaging moves to `@vscode/vsce` ([Changelog](https://github.com/CLDMV/jsonv-vscode/blob/master/docs/changelog/v0/v0.1.6.md))
 
 ## What this extension provides
 
