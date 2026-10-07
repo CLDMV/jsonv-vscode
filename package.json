@@ -2,7 +2,7 @@
 	"name": "jsonv-vscode",
 	"displayName": "JSONV Language Support",
 	"description": "VS Code language support for .jsonv files (JSON5 + ES2015-2025 features)",
-	"version": "0.1.10",
+	"version": "0.1.11",
 	"publisher": "cldmv",
 	"license": "Apache-2.0",
 	"scripts": {
@@ -16,9 +16,9 @@
 	"devDependencies": {
 		"@cldmv/configs": "^1.2.4",
 		"@cldmv/fix-headers": "^2.2.0",
-		"@cldmv/vitest-runner": "^1.5.1",
+		"@cldmv/vitest-runner": "^1.5.3",
 		"@vscode/vsce": "^4.0.0",
-		"vitest": "^5.0.2",
+		"vitest": "^5.0.3",
 		"vscode-oniguruma": "^2.0.1",
 		"vscode-textmate": "^9.3.2"
 	},
