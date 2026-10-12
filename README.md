@@ -7,17 +7,17 @@ https://github.com/CLDMV/jsonv
 
 ## ✨ What's New
 
-### Latest: v0.1.10 (October 2026)
+### Latest: v0.1.11 (October 2026)
 
-- **Dev-tooling dependency bump ([#43](https://github.com/CLDMV/jsonv-vscode/pull/43), [#46](https://github.com/CLDMV/jsonv-vscode/pull/46))** — `@cldmv/fix-headers` moves from 2.1.1 to 2.2.0, so `@Last modified by` now follows content edits only, and `@cldmv/configs` moves from 1.2.0 to 1.2.4, whose shared config no longer forces the author fields. Neither changed any file header here. The grammar and language configuration are unchanged; it's a drop-in replacement for the previous version.
-- [View full v0.1.10 Changelog](https://github.com/CLDMV/jsonv-vscode/blob/master/docs/changelog/v0/v0.1.10.md)
+- **Test-toolchain dependency bump ([#48](https://github.com/CLDMV/jsonv-vscode/pull/48), [#49](https://github.com/CLDMV/jsonv-vscode/pull/49))** — `@cldmv/vitest-runner` moves from 1.5.1 to 1.5.3 and `vitest` from 5.0.2 to 5.0.3. The grammar, language configuration and icons are unchanged; it's a drop-in replacement for the previous version. Contributors need Node.js 22.12 or later to run the tests, because the runner raised its own Node.js floor.
+- [View full v0.1.11 Changelog](https://github.com/CLDMV/jsonv-vscode/blob/master/docs/changelog/v0/v0.1.11.md)
 
 ### Recent Releases
 
+- **v0.1.10** (October 2026) — dev-tooling dependency bump: `@cldmv/fix-headers` 2.2.0 and `@cldmv/configs` 1.2.4 for the repository's header maintenance; the grammar and language configuration are unchanged ([Changelog](https://github.com/CLDMV/jsonv-vscode/blob/master/docs/changelog/v0/v0.1.10.md))
 - **v0.1.9** (October 2026) — CI only: the in-repo PR mirror job now always runs and reports under a non-required name instead of being skipped ([Changelog](https://github.com/CLDMV/jsonv-vscode/blob/master/docs/changelog/v0/v0.1.9.md))
 - **v0.1.8** (October 2026) — CI only: a skipped PR-run mirror job no longer satisfies the `✅ Required PR Check` ruleset gate; `@cldmv/vitest-runner` 1.5.1 ([Changelog](https://github.com/CLDMV/jsonv-vscode/blob/master/docs/changelog/v0/v0.1.8.md))
 - **v0.1.7** (October 2026) — shared CLDMV fix-headers config with uniform comment headers on workflows, tests and fixtures; the packaged extension is unchanged ([Changelog](https://github.com/CLDMV/jsonv-vscode/blob/master/docs/changelog/v0/v0.1.7.md))
-- **v0.1.6** (September 2026) — grammar error detection now agrees with the `@cldmv/jsonv` parser (missing commas flagged, valid forms no longer painted red), and packaging moves to `@vscode/vsce` ([Changelog](https://github.com/CLDMV/jsonv-vscode/blob/master/docs/changelog/v0/v0.1.6.md))
 
 ## What this extension provides
 
