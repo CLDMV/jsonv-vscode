@@ -14,10 +14,10 @@
 		"fix:headers": "fix-headers --config .configs/fix-headers.json"
 	},
 	"devDependencies": {
-		"@cldmv/configs": "^1.2.4",
+		"@cldmv/configs": "^1.4.0",
 		"@cldmv/fix-headers": "^2.2.7",
-		"@cldmv/vitest-runner": "^1.5.3",
-		"@vscode/vsce": "^4.0.0",
+		"@cldmv/vitest-runner": "^1.8.0",
+		"@vscode/vsce": "^4.1.1",
 		"vitest": "^5.1.0",
 		"vscode-oniguruma": "^2.0.1",
 		"vscode-textmate": "^9.3.2"
